@@ -1,0 +1,18 @@
+services:
+  ghost:
+    image: docker.io/library/ghost:6-alpine
+    container_name: source-ghost
+    restart: unless-stopped
+    ports:
+      - "2368:2368"
+    environment:
+      NODE_ENV: development
+      url: http://localhost:2368
+      database__client: sqlite3
+      database__connection__filename: /var/lib/ghost/content/data/ghost.db
+    volumes:
+      - ghost-content:/var/lib/ghost/content
+      - ./:/var/lib/ghost/content/themes/source
+
+volumes:
+  ghost-content:

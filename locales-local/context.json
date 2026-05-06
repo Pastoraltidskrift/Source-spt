@@ -1,0 +1,7 @@
+{
+    "Advertisement": "source/partials/ad-slots-top.hbs, source/partials/ad-slots-bottom.hbs",
+    "Advertisement bottom 1": "source/partials/ad-slots-bottom.hbs",
+    "Advertisement bottom 2": "source/partials/ad-slots-bottom.hbs",
+    "Advertisement top 1": "source/partials/ad-slots-top.hbs",
+    "Advertisement top 2": "source/partials/ad-slots-top.hbs"
+}
