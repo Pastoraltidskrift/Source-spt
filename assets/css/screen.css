@@ -122,6 +122,17 @@ input, button, textarea, select {
 
 p, h1, h2, h3, h4, h5, h6 {
     overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: auto;
+    hyphenate-limit-chars: 8 4 3;
+}
+
+:is(a, button, input, textarea, select, code, pre, kbd, samp) {
+    hyphens: none;
+}
+
+:is(.gh-content, .gh-card-title, .gh-article-title, .gh-article-excerpt, .gh-card-excerpt, .gh-archive-wrapper) {
+    overflow-wrap: break-word;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -2057,7 +2068,7 @@ Search                         LOGO                    Login Subscribe
 .gh-article {
     --container-width: 1120px;
 
-    word-break: break-word;
+    word-break: normal;
 }
 
 .gh-article-header {
@@ -2072,7 +2083,7 @@ Search                         LOGO                    Login Subscribe
 @media (min-width: 768px) {
     .gh-article-header.has-feature-image .gh-article-header-inner {
         display: grid;
-        grid-template-columns: minmax(0, 3fr) minmax(220px, 2fr);
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 1fr);
         column-gap: clamp(28px, 2.27vw + 18.91px, 48px);
         align-items: start;
     }
@@ -2172,14 +2183,14 @@ Search                         LOGO                    Login Subscribe
 
 .gh-article-image {
     width: 100%;
-    max-width: min(100%, 360px);
+    max-width: min(100%, 460px);
     margin-top: 24px;
 }
 
 .gh-article-image img {
     width: 100%;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
+    height: auto;
+    object-fit: contain;
     border-radius: 6px;
 }
 
@@ -2191,20 +2202,25 @@ Search                         LOGO                    Login Subscribe
 @media (max-width: 767px) {
     .gh-article-image {
         grid-column: main;
-        max-width: min(100%, 360px);
+        max-width: min(100%, 460px);
         margin-top: 24px;
     }
 }
 
 .gh-ad-slots {
     display: grid;
-    grid-template-columns: 468px 468px;
+    grid-template-columns: repeat(2, minmax(0, 468px));
     gap: 16px 24px;
     justify-content: center;
     width: 100%;
-    max-width: 960px;
+    max-width: min(100%, 960px);
     margin-inline: auto;
     padding-inline: 0;
+}
+
+.gh-ad-slots[hidden],
+.gh-ad-slots:empty {
+    display: none;
 }
 
 .gh-ad-slots-top {
@@ -2219,10 +2235,11 @@ Search                         LOGO                    Login Subscribe
 
 .gh-ad-slot {
     display: block;
-    width: 468px;
-    height: 120px;
+    width: 100%;
+    max-width: 468px;
+    min-width: 0;
+    aspect-ratio: 39 / 10;
     overflow: hidden;
-
 }
 
 .gh-ad-slot:hover {
@@ -2231,8 +2248,8 @@ Search                         LOGO                    Login Subscribe
 
 .gh-ad-slot img {
     display: block;
-    width: 468px;
-    height: 120px;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
 }
 
