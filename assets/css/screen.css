@@ -2494,6 +2494,127 @@ unless a heading is the very first element in the post content */
     width: 100%;
 }
 
+/* Podcast page */
+
+.gh-podcast-player {
+    margin-top: calc(48px * var(--content-spacing-factor, 1));
+}
+
+.gh-podcast-player iframe {
+    width: 100%;
+    max-width: 100%;
+    border: 0;
+}
+
+.gh-podcast-subscribe {
+    margin-top: calc(48px * var(--content-spacing-factor, 1));
+}
+
+.gh-podcast-subscribe-title {
+    margin-bottom: 18px;
+    font-size: calc(2.4rem * var(--factor, 1));
+}
+
+.gh-podcast-subscribe-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.gh-podcast-subscribe-button {
+    --podcast-service-color: var(--ghost-accent-color);
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: center;
+    min-height: 72px;
+    gap: 14px;
+    padding: 14px;
+    color: var(--color-darker-gray);
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.gh-podcast-subscribe-button:hover {
+    opacity: 1;
+    border-color: var(--podcast-service-color);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.gh-podcast-subscribe-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: var(--podcast-service-color);
+    background: var(--color-lighter-gray);
+    border-radius: 8px;
+}
+
+.gh-podcast-subscribe-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: currentColor;
+}
+
+.gh-podcast-subscribe-button span span {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 650;
+    line-height: 1.2;
+    color: var(--color-secondary-text);
+}
+
+.gh-podcast-subscribe-button strong {
+    display: block;
+    margin-top: 2px;
+    font-size: 1.65rem;
+    font-weight: 750;
+    line-height: 1.2;
+}
+
+.gh-podcast-subscribe-button.is-spotify {
+    --podcast-service-color: #1db954;
+}
+
+.gh-podcast-subscribe-button.is-apple {
+    --podcast-service-color: #872ec4;
+}
+
+.gh-podcast-subscribe-button.is-overcast {
+    --podcast-service-color: #fc7e0f;
+}
+
+.gh-podcast-subscribe-button.is-amazon {
+    --podcast-service-color: #00a8e1;
+}
+
+.gh-podcast-subscribe-button.is-pocket-casts {
+    --podcast-service-color: #f43e37;
+}
+
+.gh-podcast-subscribe-button.is-podcast-addict {
+    --podcast-service-color: #f4842d;
+}
+
+.gh-podcast-subscribe-button.is-rss {
+    --podcast-service-color: #f26522;
+}
+
+@media (max-width: 767px) {
+    .gh-podcast-subscribe-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gh-podcast-player iframe {
+        height: 390px;
+    }
+}
+
 /* Gallery */
 
 .kg-image[width][height],
