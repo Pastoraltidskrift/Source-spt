@@ -2,7 +2,7 @@
     "name": "source-spt",
     "description": "A Source-based Ghost theme for Svensk Pastoraltidskrift",
     "demo": "https://source.ghost.io",
-    "version": "1.6.1",
+    "version": "1.7.0",
     "engines": {
         "ghost": ">=5.0.0",
         "node": ">=22.12.0"
@@ -43,11 +43,11 @@
     "contributors": "https://github.com/TryGhost/Source/graphs/contributors",
     "devDependencies": {
         "@tryghost/release-utils": "0.8.1",
-        "@tryghost/theme-translations": "~0.0.16",
+        "@tryghost/theme-translations": "~0.0.19",
         "autoprefixer": "10.4.24",
         "beeper": "2.1.0",
         "cssnano": "7.1.2",
-        "gscan": "5.2.4",
+        "gscan": "6.2.1",
         "gulp": "5.0.1",
         "gulp-concat": "2.6.1",
         "gulp-livereload": "4.0.2",
