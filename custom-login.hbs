@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="{{@site.locale}}">
+<head>
+    <title>{{meta_title}}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="preload" as="style" href="{{asset "built/login.css"}}">
+    <link rel="stylesheet" type="text/css" href="{{asset "built/login.css"}}">
+
+    <style>
+        :root {
+            --background-color: {{@custom.site_background_color}};
+        }
+    </style>
+
+    <script>
+        var backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--background-color').trim().slice(1);
+
+        if (backgroundColor.length === 3) {
+            backgroundColor = backgroundColor[0] + backgroundColor[0] + backgroundColor[1] + backgroundColor[1] + backgroundColor[2] + backgroundColor[2];
+        }
+
+        var red = parseInt(backgroundColor.substr(0, 2), 16);
+        var green = parseInt(backgroundColor.substr(2, 2), 16);
+        var blue = parseInt(backgroundColor.substr(4, 2), 16);
+        var contrast = ((red * 299) + (green * 587) + (blue * 114)) / 1000;
+
+        document.documentElement.className = contrast >= 128 ? 'has-dark-text' : 'has-light-text';
+    </script>
+
+    {{ghost_head}}
+</head>
+<body class="custom-login-template">
+    <div class="login-shell">
+        <header class="login-header">
+            <a class="login-logo is-title" href="{{@site.url}}">
+                {{#if @site.logo}}
+                    <img src="{{@site.logo}}" alt="{{@site.title}}">
+                {{else}}
+                    {{@site.title}}
+                {{/if}}
+            </a>
+        </header>
+
+        {{#post}}
+        <main class="login-main">
+            {{#if @member}}
+                <section class="login-content" aria-labelledby="login-title">
+                    <h1 id="login-title" class="login-title is-title">Du är inloggad</h1>
+                    <p class="login-intro is-body">Du är inloggad som <strong>{{@member.email}}</strong>.</p>
+                    <a class="login-button" href="{{@site.url}}">Fortsätt till webbplatsen</a>
+                </section>
+            {{else}}
+                <section class="login-content" aria-labelledby="login-title">
+                    <h1 id="login-title" class="login-title is-title">{{title}}</h1>
+                    <p class="login-intro is-body">
+                        {{#if custom_excerpt}}
+                            {{custom_excerpt}}
+                        {{else}}
+                            Ange din e-postadress så skickar vi en engångskod.
+                        {{/if}}
+                    </p>
+
+                    <form class="gh-form login-form" data-members-form="signin" data-members-otc="true">
+                        <div class="login-form-fields">
+                            <label class="login-label" for="login-email">E-postadress</label>
+                            <input class="gh-form-input login-input" id="login-email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="E-post" data-members-email required>
+                            <button class="gh-button login-button" type="submit">
+                                <span class="login-button-default">Logga in</span>
+                                <span class="login-button-loading">Skickar…</span>
+                            </button>
+                        </div>
+
+                        <p class="login-message login-message-success" role="status">
+                            Kontrollera din inkorg och använd koden för att logga in.
+                        </p>
+                        <p class="login-message login-message-error" data-members-error role="alert"></p>
+                    </form>
+                </section>
+            {{/if}}
+        </main>
+        {{/post}}
+
+        <footer class="login-footer">
+            <a href="{{@site.url}}">Till {{@site.title}}</a>
+        </footer>
+    </div>
+
+    <script>
+        async function tryReturnToApp() {
+            const res = await fetch('/members/api/session', {credentials: 'include'});
+
+            if (res.ok) {
+                const token = (await res.text()).trim();
+
+                if (token) {
+                    window.location.href = 'spt://auth?token=' + encodeURIComponent(token);
+                    return;
+                }
+            }
+        }
+
+        tryReturnToApp();
+        setInterval(tryReturnToApp, 1500);
+    </script>
+
+    {{ghost_foot}}
+</body>
+</html>
