@@ -721,7 +721,7 @@ Search                         LOGO                    Login Subscribe
     }
 }
 
-@media (min-width: 992px) {
+@media (min-width: 768px) {
     .gh-navigation.is-stacked .gh-navigation-inner {
         padding: 0;
     }
@@ -841,6 +841,18 @@ Search                         LOGO                    Login Subscribe
 
 /* 6.4. Mobile menu */
 
+html.gh-navigation-open {
+    overflow: hidden;
+}
+
+.gh-navigation-open body {
+    position: fixed;
+    top: var(--gh-navigation-scroll-top);
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
 .gh-burger {
     display: flex;
     justify-content: center;
@@ -957,7 +969,8 @@ Search                         LOGO                    Login Subscribe
         inset: 0;
         z-index: 3999999;
         height: 100%;
-        overflow-y: scroll;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
         -webkit-overflow-scrolling: touch;
     }
 
