@@ -79,6 +79,12 @@
                     </form>
                 </section>
             {{/if}}
+
+            <section class="login-content" id="app-login-done" aria-labelledby="app-login-done-title" hidden>
+                <h1 id="app-login-done-title" class="login-title is-title">Klart</h1>
+                <p class="login-intro is-body">Du är inloggad i appen och kan stänga den här fliken.</p>
+                <button class="gh-button login-button" type="button" id="app-login-open">Öppna appen</button>
+            </section>
         </main>
         {{/post}}
 
@@ -88,21 +94,90 @@
     </div>
 
     <script>
-        async function tryReturnToApp() {
-            const res = await fetch('/members/api/session', {credentials: 'include'});
+        (function () {
+            // Fliken hoppar till appen en gång. Medlemscookien ligger kvar i
+            // webbläsaren, så utan spärren skickade en kvarglömd flik läsaren
+            // till appen varje gång webbläsaren öppnades eller laddade om den.
+            // sessionStorage följer fliken men inte nya flikar, så nästa
+            // Logga in i appen hoppar tillbaka som vanligt.
+            var RETURNED_KEY = 'spt-app-login-returned';
+            var returned = false;
+            var timer = null;
 
-            if (res.ok) {
-                const token = (await res.text()).trim();
-
-                if (token) {
-                    window.location.href = 'spt://auth?token=' + encodeURIComponent(token);
-                    return;
+            function hasReturned() {
+                if (returned) return true;
+                try {
+                    return sessionStorage.getItem(RETURNED_KEY) === '1';
+                } catch (e) {
+                    return false;
                 }
             }
-        }
 
-        tryReturnToApp();
-        setInterval(tryReturnToApp, 1500);
+            function markReturned() {
+                returned = true;
+                try {
+                    sessionStorage.setItem(RETURNED_KEY, '1');
+                } catch (e) {}
+            }
+
+            function stopPolling() {
+                if (timer !== null) {
+                    clearInterval(timer);
+                    timer = null;
+                }
+            }
+
+            function showDone() {
+                var done = document.getElementById('app-login-done');
+                document.querySelectorAll('.login-main > .login-content').forEach(function (section) {
+                    section.hidden = section !== done;
+                });
+            }
+
+            // Ghosts token gäller tio minuter, så den hämtas på nytt vid varje hopp.
+            async function fetchToken() {
+                try {
+                    var res = await fetch('/members/api/session', {credentials: 'include'});
+                    if (!res.ok) return null;
+                    return (await res.text()).trim() || null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            async function returnToApp() {
+                var token = await fetchToken();
+                if (!token || hasReturned()) return;
+                stopPolling();
+                markReturned();
+                showDone();
+                window.location.href = 'spt://auth?token=' + encodeURIComponent(token);
+            }
+
+            document.getElementById('app-login-open').addEventListener('click', async function () {
+                var token = await fetchToken();
+                if (token) {
+                    window.location.href = 'spt://auth?token=' + encodeURIComponent(token);
+                }
+            });
+
+            if (hasReturned()) {
+                if ({{#if @member}}true{{else}}false{{/if}}) {
+                    showDone();
+                    return;
+                }
+                // Utloggad sedan förra hoppet: fliken får logga in på nytt.
+                returned = false;
+                try {
+                    sessionStorage.removeItem(RETURNED_KEY);
+                } catch (e) {}
+            }
+
+            // Inloggningen kan bli klar i en annan flik, till exempel via
+            // länken i mejlet, så sidan frågar tills sessionen finns.
+            returnToApp();
+            timer = setInterval(returnToApp, 1500);
+        })();
     </script>
 
     {{ghost_foot}}
