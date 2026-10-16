@@ -44,12 +44,18 @@
         </header>
 
         {{#post}}
-        <main class="login-main">
+        {{!-- Samma mall används av två sidor: /app-login skickar läsaren till
+              appen och /arkiv-login till arkivet på arkiv.pastoraltidskrift.se. --}}
+        <main class="login-main" data-login-mode="{{#match slug "arkiv-login"}}arkiv{{else}}app{{/match}}">
             {{#if @member}}
                 <section class="login-content" aria-labelledby="login-title">
                     <h1 id="login-title" class="login-title is-title">Du är inloggad</h1>
                     <p class="login-intro is-body">Du är inloggad som <strong>{{@member.email}}</strong>.</p>
-                    <a class="login-button" href="{{@site.url}}">Fortsätt till webbplatsen</a>
+                    {{#match slug "arkiv-login"}}
+                        <p class="login-intro is-body">Du skickas vidare till arkivet.</p>
+                    {{else}}
+                        <a class="login-button" href="{{@site.url}}">Fortsätt till webbplatsen</a>
+                    {{/match}}
                 </section>
             {{else}}
                 <section class="login-content" aria-labelledby="login-title">
@@ -85,6 +91,23 @@
                 <p class="login-intro is-body">Du är inloggad i appen och kan stänga den här fliken.</p>
                 <button class="gh-button login-button" type="button" id="app-login-open">Öppna appen</button>
             </section>
+
+            <section class="login-content" id="arkiv-login-sending" aria-labelledby="arkiv-login-sending-title" hidden>
+                <h1 id="arkiv-login-sending-title" class="login-title is-title">Du är inloggad</h1>
+                <p class="login-intro is-body">Du skickas vidare till arkivet.</p>
+            </section>
+
+            <section class="login-content" id="arkiv-login-done" aria-labelledby="arkiv-login-done-title" hidden>
+                <h1 id="arkiv-login-done-title" class="login-title is-title">Klart</h1>
+                <p class="login-intro is-body">Du är inloggad i arkivet.</p>
+                <a class="login-button" href="https://arkiv.pastoraltidskrift.se/">Till arkivet</a>
+            </section>
+
+            <section class="login-content" id="arkiv-login-restart" aria-labelledby="arkiv-login-restart-title" hidden>
+                <h1 id="arkiv-login-restart-title" class="login-title is-title">Logga in från arkivet</h1>
+                <p class="login-intro is-body">Inloggningen måste startas från arkivet. Har du loggat in via länken i mejlet kan du gå tillbaka till fliken där du började, eller börja om här.</p>
+                <a class="login-button" href="https://arkiv.pastoraltidskrift.se/auth/login">Logga in i arkivet</a>
+            </section>
         </main>
         {{/post}}
 
@@ -95,28 +118,28 @@
 
     <script>
         (function () {
-            // Fliken hoppar till appen en gång. Medlemscookien ligger kvar i
-            // webbläsaren, så utan spärren skickade en kvarglömd flik läsaren
-            // till appen varje gång webbläsaren öppnades eller laddade om den.
-            // sessionStorage följer fliken men inte nya flikar, så nästa
-            // Logga in i appen hoppar tillbaka som vanligt.
-            var RETURNED_KEY = 'spt-app-login-returned';
-            var returned = false;
+            var ARKIV_URL = 'https://arkiv.pastoraltidskrift.se';
+            var main = document.querySelector('.login-main');
+            var isMember = {{#if @member}}true{{else}}false{{/if}};
             var timer = null;
 
-            function hasReturned() {
-                if (returned) return true;
+            function getFlag(key) {
                 try {
-                    return sessionStorage.getItem(RETURNED_KEY) === '1';
+                    return sessionStorage.getItem(key) === '1';
                 } catch (e) {
                     return false;
                 }
             }
 
-            function markReturned() {
-                returned = true;
+            function setFlag(key) {
                 try {
-                    sessionStorage.setItem(RETURNED_KEY, '1');
+                    sessionStorage.setItem(key, '1');
+                } catch (e) {}
+            }
+
+            function clearFlag(key) {
+                try {
+                    sessionStorage.removeItem(key);
                 } catch (e) {}
             }
 
@@ -127,10 +150,17 @@
                 }
             }
 
-            function showDone() {
-                var done = document.getElementById('app-login-done');
+            // Inloggningen kan bli klar i en annan flik, till exempel via
+            // länken i mejlet, så sidan frågar tills sessionen finns.
+            function pollUntilSignedIn(step) {
+                step();
+                timer = setInterval(step, 1500);
+            }
+
+            function showSection(id) {
+                var shown = document.getElementById(id);
                 document.querySelectorAll('.login-main > .login-content').forEach(function (section) {
-                    section.hidden = section !== done;
+                    section.hidden = section !== shown;
                 });
             }
 
@@ -145,38 +175,99 @@
                 }
             }
 
-            async function returnToApp() {
-                var token = await fetchToken();
-                if (!token || hasReturned()) return;
-                stopPolling();
-                markReturned();
-                showDone();
-                window.location.href = 'spt://auth?token=' + encodeURIComponent(token);
-            }
+            function appLogin() {
+                // Fliken hoppar till appen en gång. Medlemscookien ligger kvar i
+                // webbläsaren, så utan spärren skickade en kvarglömd flik läsaren
+                // till appen varje gång webbläsaren öppnades eller laddade om den.
+                // sessionStorage följer fliken men inte nya flikar, så nästa
+                // Logga in i appen hoppar tillbaka som vanligt.
+                var RETURNED_KEY = 'spt-app-login-returned';
+                var returned = false;
 
-            document.getElementById('app-login-open').addEventListener('click', async function () {
-                var token = await fetchToken();
-                if (token) {
+                function hasReturned() {
+                    return returned || getFlag(RETURNED_KEY);
+                }
+
+                async function returnToApp() {
+                    var token = await fetchToken();
+                    if (!token || hasReturned()) return;
+                    stopPolling();
+                    returned = true;
+                    setFlag(RETURNED_KEY);
+                    showSection('app-login-done');
                     window.location.href = 'spt://auth?token=' + encodeURIComponent(token);
                 }
-            });
 
-            if (hasReturned()) {
-                if ({{#if @member}}true{{else}}false{{/if}}) {
-                    showDone();
-                    return;
+                document.getElementById('app-login-open').addEventListener('click', async function () {
+                    var token = await fetchToken();
+                    if (token) {
+                        window.location.href = 'spt://auth?token=' + encodeURIComponent(token);
+                    }
+                });
+
+                if (hasReturned()) {
+                    if (isMember) {
+                        showSection('app-login-done');
+                        return;
+                    }
+                    // Utloggad sedan förra hoppet: fliken får logga in på nytt.
+                    clearFlag(RETURNED_KEY);
                 }
-                // Utloggad sedan förra hoppet: fliken får logga in på nytt.
-                returned = false;
-                try {
-                    sessionStorage.removeItem(RETURNED_KEY);
-                } catch (e) {}
+
+                pollUntilSignedIn(returnToApp);
             }
 
-            // Inloggningen kan bli klar i en annan flik, till exempel via
-            // länken i mejlet, så sidan frågar tills sessionen finns.
-            returnToApp();
-            timer = setInterval(returnToApp, 1500);
+            function arkivLogin() {
+                // Arkivet skickar med state och returnTo. Bryggan skickar tillbaka
+                // dem oförändrade, och arkivet kontrollerar state mot sin cookie.
+                var params = new URLSearchParams(window.location.search);
+                var state = params.get('state');
+                var returnTo = params.get('returnTo') || '/';
+                if (!state) {
+                    showSection('arkiv-login-restart');
+                    return;
+                }
+
+                // Arkivet godtar varje state en gång. Utan spärren skulle Tillbaka
+                // i webbläsaren posta samma state igen och få ett fel från arkivet.
+                var postedKey = 'spt-arkiv-login-posted:' + state;
+                var posted = false;
+                if (getFlag(postedKey)) {
+                    showSection('arkiv-login-done');
+                    return;
+                }
+
+                async function postToArchive() {
+                    var token = await fetchToken();
+                    if (!token || posted) return;
+                    posted = true;
+                    stopPolling();
+                    setFlag(postedKey);
+                    showSection('arkiv-login-sending');
+
+                    // Token skickas i POST-kroppen, aldrig i URL:en.
+                    var form = document.createElement('form');
+                    form.method = 'post';
+                    form.action = ARKIV_URL + '/auth/ghost';
+                    [['token', token], ['state', state], ['returnTo', returnTo]].forEach(function (field) {
+                        var input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = field[0];
+                        input.value = field[1];
+                        form.appendChild(input);
+                    });
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+
+                pollUntilSignedIn(postToArchive);
+            }
+
+            if (main && main.dataset.loginMode === 'arkiv') {
+                arkivLogin();
+            } else {
+                appLogin();
+            }
         })();
     </script>
 
